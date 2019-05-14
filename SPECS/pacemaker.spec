@@ -163,7 +163,7 @@
 Name:          pacemaker
 Summary:       Scalable High-Availability cluster resource manager
 Version:       %{pcmkversion}
-Release:       %{pcmk_release}%{?dist}.1
+Release:       %{pcmk_release}.1%{?dist}
 %if %{defined _unitdir}
 License:       GPLv2+ and LGPLv2+
 %else
