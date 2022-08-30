@@ -1,3 +1,8 @@
+%global package_speccommit 041646e3a4df9986d984d189951244eae6e826ef
+%global usver 1.1.18
+%global xsver 12.3
+%global xsrel %{xsver}%{?xscount}%{?xshash}
+%global package_srccommit 2b07d5c
 # Globals and defines to control package behavior (configure these as desired)
 
 ## User and group to use for nonprivileged services
@@ -162,8 +167,8 @@
 
 Name:          pacemaker
 Summary:       Scalable High-Availability cluster resource manager
-Version:       %{pcmkversion}
-Release:       %{pcmk_release}%{?dist}.1
+Version: 1.1.18
+Release: %{?xsrel}%{?dist}
 %if %{defined _unitdir}
 License:       GPLv2+ and LGPLv2+
 %else
@@ -174,27 +179,21 @@ Url:           http://www.clusterlabs.org
 Group:         System Environment/Daemons
 
 # eg. https://github.com/ClusterLabs/pacemaker/archive/8ae45302394b039fb098e150f156df29fc0cb576/pacemaker-8ae4530.tar.gz
-#Source0: https://github.com/%{github_owner}/%{name}/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
-
-Source0: https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz
-Source1: https://repo.citrite.net:443/xs-local-contrib/pacemaker/nagios-agents-metadata-105ab8a.tar.gz
-Patch1: SOURCES/pacemaker/001-new-behavior.patch
-Patch2: SOURCES/pacemaker/002-fixes.patch
-Patch3: SOURCES/pacemaker/003-cleanup.patch
-Patch4: SOURCES/pacemaker/004-cleanup.patch
-Patch5: SOURCES/pacemaker/005-cleanup.patch
-Patch6: SOURCES/pacemaker/006-leaks.patch
-Patch7: SOURCES/pacemaker/007-bundles.patch
-Patch8: SOURCES/pacemaker/008-quorum.patch
-Patch9: SOURCES/pacemaker/009-crm_resource.patch
-Patch10: SOURCES/pacemaker/010-crm_master.patch
-Patch100: SOURCES/pacemaker/lrmd-protocol-version.patch
-Patch101: SOURCES/pacemaker/rhbz-url.patch
-
-
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
-
+#Source0: https://github.com/%%{github_owner}/%%{name}/archive/%%{commit}/%%{name}-%%{shortcommit}.tar.gz
+Source0: pacemaker-2b07d5c.tar.gz
+Source1: nagios-agents-metadata-105ab8a.tar.gz
+Patch0: 001-new-behavior.patch
+Patch1: 002-fixes.patch
+Patch2: 003-cleanup.patch
+Patch3: 004-cleanup.patch
+Patch4: 005-cleanup.patch
+Patch5: 006-leaks.patch
+Patch6: 007-bundles.patch
+Patch7: 008-quorum.patch
+Patch8: 009-crm_resource.patch
+Patch9: 010-crm_master.patch
+Patch10: lrmd-protocol-version.patch
+Patch11: rhbz-url.patch
 
 # upstream commits
 
@@ -202,6 +201,7 @@ Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos
 
 BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 AutoReqProv:   on
+%{?_cov_buildrequires}
 Requires:      resource-agents
 Requires:      %{name}-libs = %{version}-%{release}
 Requires:      %{name}-cluster-libs = %{version}-%{release}
@@ -216,9 +216,18 @@ Provides:      pcmk-cluster-manager
 
 ExclusiveArch: i686 x86_64 ppc64le s390x
 
+%if 0%{?centos} > 7 || 0%{?rhel} > 7 || 0%{?fedora} > 0
+BuildRequires: python3-devel
+BuildRequires: python3-rpm-macros
+%global py_sitearch %{python3_sitearch}
+%global __python %{__python3}
+%else
 # Pacemaker targets compatibility with python 2.6+ and 3.2+
-Requires:      python >= 2.6
-BuildRequires: python-devel >= 2.6
+BuildRequires: python2-devel
+BuildRequires: python2-rpm-macros
+%global py_sitearch %{python2_sitearch}
+%global __python %{__python2}
+%endif
 
 # Pacemaker requires a minimum libqb functionality
 Requires:      libqb > 0.17.0
@@ -286,8 +295,6 @@ Available rpmbuild rebuild options:
   --with(out) : cman coverage doc stonithd hardening pre_release profiling
 
 %package cli
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 License:       GPLv2+ and LGPLv2+
 Summary:       Command line tools for controlling Pacemaker clusters
 Group:         System Environment/Daemons
@@ -303,8 +310,6 @@ to query and control the cluster from machines that may, or may not,
 be part of the cluster.
 
 %package -n %{name}-libs
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 License:       GPLv2+ and LGPLv2+
 Summary:       Core Pacemaker libraries
 Group:         System Environment/Daemons
@@ -317,8 +322,6 @@ The %{name}-libs package contains shared libraries needed for cluster
 nodes and those just running the CLI tools.
 
 %package -n %{name}-cluster-libs
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 License:       GPLv2+ and LGPLv2+
 Summary:       Cluster Libraries used by Pacemaker
 Group:         System Environment/Daemons
@@ -332,8 +335,6 @@ The %{name}-cluster-libs package contains cluster-aware shared
 libraries needed for nodes that will form part of the cluster nodes.
 
 %package remote
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 %if %{defined _unitdir}
 License:       GPLv2+ and LGPLv2+
 %else
@@ -359,8 +360,6 @@ which is capable of extending pacemaker functionality to remote
 nodes not running the full corosync/cluster stack.
 
 %package -n %{name}-libs-devel
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 License:       GPLv2+ and LGPLv2+
 Summary:       Pacemaker development package
 Group:         Development/Libraries
@@ -381,8 +380,6 @@ for developing tools for Pacemaker.
 
 # NOTE: can be noarch if lrmd_test is moved to another subpackage
 %package       cts
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 License:       GPLv2+ and LGPLv2+
 Summary:       Test framework for cluster-related technologies like Pacemaker
 Group:         System Environment/Daemons
@@ -406,8 +403,6 @@ Requires:      systemd-python
 Test framework for cluster-related technologies like Pacemaker
 
 %package       doc
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 License:       CC-BY-SA
 Summary:       Documentation for Pacemaker
 Group:         Documentation
@@ -419,8 +414,6 @@ Pacemaker is an advanced, scalable High-Availability cluster resource
 manager for Corosync, CMAN and/or Linux-HA.
 
 %package       nagios-plugins-metadata
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker/archive?at=2b07d5c&format=tar.gz&prefix=pacemaker-2b07d5c5a908998891c3317faa30328c108d3a91#/pacemaker-2b07d5c.tar.gz) = 2b07d5c5a908998891c3317faa30328c108d3a91
-Provides: gitsha(https://code.citrite.net/rest/archive/latest/projects/XSU/repos/pacemaker.centos/archive?at=imports%2Fc7%2Fpacemaker-1.1.18-11.el7&format=tar.gz#/pacemaker-1.1.18.centos.tar.gz) = 8ad0818c80013128b56d2c18afd702ee85819050
 License:       GPLv2+ and LGPLv2+
 Summary:       Pacemaker Nagios Metadata
 Group:         System Environment/Daemons
@@ -445,6 +438,7 @@ monitor resources.
 
 %prep
 %autosetup -a 1 -n %{name}-%{commit} -S git_am -p 1
+%{?_cov_prepare}
 
 # Force the local time
 #
@@ -499,7 +493,7 @@ sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 %endif
 
-make %{_smp_mflags} V=1 all
+%{?_cov_wrap} make %{_smp_mflags} V=1 all
 
 %check
 # Prevent false positives in rpmlint
@@ -508,6 +502,7 @@ make %{_smp_mflags} V=1 all
 %install
 rm -rf %{buildroot}
 make DESTDIR=%{buildroot} docdir=%{pcmk_docdir} V=1 install
+%{?_cov_install}
 
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
 install -m 644 mcp/pacemaker.sysconfig ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/pacemaker
@@ -887,8 +882,13 @@ exit 0
 %dir %{_datadir}/pacemaker/nagios/plugins-metadata
 %attr(0644,root,root) %{_datadir}/pacemaker/nagios/plugins-metadata/*
 
+%{?_cov_results_package}
+
 %changelog
-* Fri Oct 19 2018 Liang Dai <liang.dai1@citrix.com> - 1.1.18-12
+* Fri Nov 26 2021 Mark Syms <mark.syms@citrix.com> - 1.1.18-12.2
+- Rebuild
+
+* Fri Oct 19 2018 Liang Dai <liang.dai1@citrix.com> - 1.1.18-12.1
 - CP-29716: Remove libqb for centos-7.5
 
 * Thu Mar 15 2018 Edwin Török <edvin.torok@citrix.com> - 1.1.16-12.9
@@ -1064,7 +1064,7 @@ exit 0
 - Resolves: rhbz#1289662
 - Resolves: rhbz#1383462
 - Resolves: rhbz#1405635
-- Resolves: rhbz#1412309 
+- Resolves: rhbz#1412309
 
 * Thu Jan 12 2017 Ken Gaillot <kgaillot@redhat.com> - 1.1.16-1
 - Rebase to upstream 94ff4df51a55cc30d01843ea11b3292bac755432 (1.1.16)
@@ -1187,7 +1187,7 @@ exit 0
 - Resolves: rhbz#1267265
 
 * Wed Sep 16 2015 Andrew Beekhof <abeekhof@redhat.com> - 1.1.13-8
-- Fix regression when setting attributes for remote nodes 
+- Fix regression when setting attributes for remote nodes
 - Resolves: rhbz#1206647
 
 * Thu Sep 10 2015 Andrew Beekhof <abeekhof@redhat.com> - 1.1.13-7
@@ -1234,7 +1234,7 @@ exit 0
   Resolves: rhbz#1176210
 
 * Thu Jan 15 2015 Andrew Beekhof <abeekhof@redhat.com> - 1.1.12-21
-- Fix use-after-free in CLI tool when restarting a resource 
+- Fix use-after-free in CLI tool when restarting a resource
 
 * Tue Jan 13 2015 Andrew Beekhof <abeekhof@redhat.com> - 1.1.12-20
 - Expose the -N/--node option for attrd_updater to allow attributes to
@@ -1264,7 +1264,7 @@ exit 0
 - Update patch level to upstream 7dd9022
 - Ensure all internal caches are updated when nodes are removed from the cluster
   Resolves: rhbz#1162727
- 
+
 * Wed Nov 05 2014 Andrew Beekhof <abeekhof@redhat.com> - 1.1.12-10
 - Update patch level to upstream 98b6688
 - Support an intelligent resource restart operation
@@ -1283,7 +1283,7 @@ exit 0
 
 * Fri Oct 24 2014 Andrew Beekhof <abeekhof@redhat.com> - 1.1.12-5
 - Update patch level to upstream 031e46c
-  - Prevent glib assert triggered by timers being removed from mainloop more than once 
+  - Prevent glib assert triggered by timers being removed from mainloop more than once
   - Allow rsc discovery to be disabled in certain situations
   - Allow remote-nodes to be placed in maintenance mode
   - Improved sbd integration
